@@ -99,6 +99,17 @@ public:
     void insert(const T &value)
     {
         // TODO
+        Node newNode = new Node(T);
+
+        if (root == NULL)
+        {
+            root = newNode;
+            return;
+        }
+        Node tmp = NULL;
+        while (true)
+        {
+        }
     }
 
     class Node
