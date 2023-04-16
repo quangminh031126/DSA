@@ -96,12 +96,56 @@ public:
         }
     }
 
-    void insert(const T &value)
+    void updateBalance(Node *node)
     {
-        // TODO
-        root = insertNode(root, value);
+        if (node == nullptr)
+        {
+            return;
+        }
+        rebalance(node);
+        int lh = getHeightRec(node->pLeft);
+        int rh = getHeightRec(node->pRight);
+        node->balance = static_cast<BalanceValue>(rh - lh);
+        rebalance(node);
+
+        updateBalance(node->pLeft);
+        rebalance(node);
+
+        updateBalance(node->pRight);
+        rebalance(node);
     }
-    Node *rotateLeft(Node *node)
+
+    void rebalance(Node *node)
+    {
+        if (node->balance == LH)
+        {
+            if (node->pLeft->balance == LH)
+            {
+                rotateRight(node);
+            }
+            else if (node->pLeft->balance == RH)
+            {
+                rotateLeftRight(node);
+            }
+            else
+                return;
+        }
+        else if (node->balance == RH)
+        {
+            if (node->pRight->balance == RH)
+            {
+                rotateLeft(node);
+            }
+            else if (node->pRight->balance == LH)
+            {
+                rotateRightLeft(node);
+            }
+            else
+                return;
+        }
+    }
+
+    void rotateLeft(Node *node)
     {
         Node *pivot = node->pRight;
         node->pRight = pivot->pLeft;
@@ -109,9 +153,9 @@ public:
         node->balance = EH;
         pivot->balance = EH;
         node = pivot;
-        return node;
     }
-    Node *rotateRight(Node *node)
+
+    void rotateRight(Node *node)
     {
         Node *pivot = node->pLeft;
         node->pLeft = pivot->pRight;
@@ -119,68 +163,58 @@ public:
         node->balance = EH;
         pivot->balance = EH;
         node = pivot;
-        return node;
-    }
-    Node *rotateLeftRight(Node *node)
-    {
-        node->pLeft = rotateLeft(node->pLeft);
-        node = rotateRight(node);
-        return node;
     }
 
-    Node *rotateRightLeft(Node *node)
+    void rotateLeftRight(Node *node)
     {
-        node->pRight = rotateRight(node->pRight);
-        node = rotateLeft(node);
-        return node;
+        rotateLeft(node->pLeft);
+        rotateRight(node);
     }
-    Node *rebalance(Node *node)
-    {
-        if (static_cast<int>(node->balance) < -1)
-        {
-            if (static_cast<int>(node->pLeft->balance) <= -1)
-            {
-                node = rotateRight(node);
-            }
-            else if (static_cast<int>(node->pLeft->balance) >= 1)
-            {
-                node = rotateLeftRight(node);
-            }
-        }
-        else if (static_cast<int>(node->balance) > 1)
-        {
-            if (static_cast<int>(node->pRight->balance) >= 1)
-            {
-                node = rotateLeft(node);
-            }
-            else if (static_cast<int>(node->pRight->balance) <= -1)
-            {
-                node = rotateRightLeft(node);
-            }
-        }
-        return node;
-    }
-    Node *insertNode(Node *node, const T &value)
-    {
-        if (node == NULL)
-        {
-            Node *newNode = new Node(value);
-            return newNode;
-        }
 
-        if (value < node->data)
+    void rotateRightLeft(Node *node)
+    {
+        rotateRight(node->pRight);
+        rotateLeft(node);
+    }
+
+    void insert(const T &value)
+    {
+        if (root == nullptr)
         {
-            node->pLeft = insertNode(node->pLeft, value);
-            node->balance = static_cast<BalanceValue>(node->balance - 1);
-            node = rebalance(node);
+            root = new Node(value);
+            return;
+        }
+        Node *currentNode = root;
+        Node *parentNode = nullptr;
+        while (currentNode != nullptr)
+        {
+            parentNode = currentNode;
+            if (value < currentNode->data)
+            {
+                currentNode = currentNode->pLeft;
+            }
+            else
+            {
+                currentNode = currentNode->pRight;
+            }
+        }
+        if (value == parentNode->data)
+        {
+            currentNode = new Node(value);
+            parentNode->pRight = currentNode;
+        }
+        else if (value < parentNode->data)
+        {
+            currentNode = new Node(value);
+            parentNode->pLeft = currentNode;
         }
         else
         {
-            node->pRight = insertNode(node->pRight, value);
-            node->balance = static_cast<BalanceValue>(node->balance + 1);
-            node = rebalance(node);
+            currentNode = new Node(value);
+            parentNode->pRight = currentNode;
         }
-        return node;
+        // update balance factors
+        updateBalance(root);
     }
 
     class Node
